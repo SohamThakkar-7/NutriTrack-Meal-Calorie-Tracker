@@ -1,0 +1,16 @@
+flask==3.0.3
+flask-cors==4.0.1
+pymongo==4.7.2
+python-dotenv==1.0.1
+gunicorn==22.0.0
+
+# ── Medical report analysis pipeline ──────────────────────────
+PyMuPDF>=1.24.0        # PDF text extraction + page rasterisation for OCR
+pytesseract>=0.3.13    # Python wrapper for Tesseract OCR engine
+Pillow>=10.0.0         # Image I/O (used by pytesseract)
+
+# NOTE: Tesseract OCR binary must also be installed on the OS:
+#   Windows : https://github.com/UB-Mannheim/tesseract/wiki
+#   Linux   : sudo apt-get install tesseract-ocr
+#   macOS   : brew install tesseract
+#   Render  : add to render.yaml → buildCommand or use apt addon

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Meal — NutriTrack</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Food Search Autocomplete ── */
+    .food-search-wrap { position: relative; }
+    .food-search-input-row { display: flex; gap: .5rem; }
+    .food-search-input-row .form-control { flex: 1; }
+
+    #searchBtn {
+      flex-shrink: 0;
+      background: var(--green-main);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: .7rem 1rem;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: .88rem;
+      cursor: pointer;
+      transition: background var(--transition);
+      white-space: nowrap;
+    }
+    #searchBtn:hover    { background: var(--green-dark); }
+    #searchBtn:disabled { background: var(--tan); cursor: not-allowed; }
+
+    /* Dropdown */
+    #foodDropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: #fff;
+      border: 1.5px solid rgba(64,145,108,.3);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 500;
+      display: none;
+    }
+    #foodDropdown.open { display: block; }
+
+    .dropdown-item-food {
+      padding: .7rem 1rem;
+      border-bottom: 1px solid var(--cream-dark);
+      cursor: pointer;
+      transition: background var(--transition);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: .5rem;
+    }
+    .dropdown-item-food:last-child   { border-bottom: none; }
+    .dropdown-item-food:hover,
+    .dropdown-item-food.highlighted  { background: var(--green-pale); }
+
+    .food-item-name { font-weight: 600; font-size: .88rem; color: var(--text-dark); }
+    .food-item-meta { font-size: .75rem; color: var(--text-light); margin-top: .1rem; }
+    .food-item-kcal { font-family: var(--font-mono); font-size: .85rem; font-weight: 600; color: var(--green-main); white-space: nowrap; }
+
+    .source-badge {
+      display: inline-flex; align-items: center; gap: .3rem;
+      font-size: .7rem; font-weight: 700; letter-spacing: .04em;
+      padding: .18rem .55rem; border-radius: 50px;
+    }
+    .source-badge.local { background: var(--green-pale); color: var(--green-dark); }
+    .source-badge.api   { background: rgba(61,139,224,.1); color: var(--info); }
+
+    .dropdown-status {
+      padding: 1rem; text-align: center;
+      font-size: .86rem; color: var(--text-light);
+    }
+
+    /* Auto-fill highlight animation */
+    .form-control.autofilled {
+      border-color: var(--green-main) !important;
+      background: var(--green-pale) !important;
+    }
+
+    /* Nutrition preview card */
+    #nutritionPreview {
+      background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+      border-radius: var(--radius-md);
+      padding: 1rem 1.2rem;
+      color: #fff;
+      margin-bottom: 1.2rem;
+      display: none;
+      animation: fadeInUp .35s ease;
+    }
+    .preview-food-name { font-size: .88rem; color: rgba(255,255,255,.75); margin-bottom: .7rem; }
+    .preview-grid      { display: grid; grid-template-columns: repeat(4,1fr); gap: .5rem; }
+    .preview-cell-label{ font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.55); }
+    .preview-cell-val  { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: #fff; line-height: 1.1; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="index.html"><span class="brand-icon">🥗</span> NutriTrack</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav ms-auto gap-1">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="login.html">Login</a></li>
+        <li class="nav-item"><a class="nav-link" href="register.html">Register</a></li>
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link active" href="add_meal.html">Add Meal</a></li>
+        <li class="nav-item"><a class="nav-link" href="reports.html">Reports</a></li>
+        <li class="nav-item"><a class="nav-link" href="analyze_report.html">Health Report</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+    <div class="section-label" style="background:rgba(255,255,255,.15);color:#fff;">🍽️ Food Log</div>
+    <h1 class="mt-2">Log a Meal</h1>
+    <p>Search any food — calories and macros fill in automatically.</p>
+  </div>
+</div>
+
+<section style="padding:3rem 0 5rem;">
+  <div class="container">
+    <div class="row justify-content-center g-5 align-items-start">
+
+      <!-- ── FORM ── -->
+      <div class="col-lg-6 col-md-9">
+        <div class="form-card" style="max-width:560px;">
+
+          <div id="mealSuccessMsg" class="alert-success-clean mb-4" style="display:none;"></div>
+
+          <form id="addMealForm" novalidate>
+
+            <!-- STEP 1 · Food Search -->
+            <div class="mb-4">
+              <label class="form-label">
+                🔍 Search Food
+                <span style="font-size:.72rem;font-weight:400;color:var(--text-light);text-transform:none;letter-spacing:0;margin-left:.3rem;">
+                  type to auto-fill nutrition
+                </span>
+              </label>
+
+              <div class="food-search-wrap">
+                <div class="food-search-input-row">
+                  <input
+                    type="text"
+                    id="foodSearch"
+                    class="form-control"
+                    placeholder="e.g. Dal Rice, Banana, Chicken..."
+                    autocomplete="off"
+                  />
+                  <button type="button" id="searchBtn">🌐 Search Online</button>
+                </div>
+                <div id="foodDropdown"></div>
+              </div>
+
+              <div id="searchStatus" style="font-size:.78rem;margin-top:.4rem;min-height:1.1em;color:var(--text-light);"></div>
+            </div>
+
+            <!-- Nutrition preview (visible after selection) -->
+            <div id="nutritionPreview">
+              <div class="preview-food-name" id="previewFoodName">—</div>
+              <div class="preview-grid">
+                <div>
+                  <div class="preview-cell-label">Calories</div>
+                  <div class="preview-cell-val" id="previewCalories">0</div>
+                </div>
+                <div>
+                  <div class="preview-cell-label">Protein</div>
+                  <div class="preview-cell-val" id="previewProtein">0g</div>
+                </div>
+                <div>
+                  <div class="preview-cell-label">Carbs</div>
+                  <div class="preview-cell-val" id="previewCarbs">0g</div>
+                </div>
+                <div>
+                  <div class="preview-cell-label">Fat</div>
+                  <div class="preview-cell-val" id="previewFat">0g</div>
+                </div>
+              </div>
+            </div>
+
+            <hr class="divider" />
+
+            <!-- STEP 2 · Meal Type -->
+            <div class="mb-4">
+              <label class="form-label d-block mb-2">Meal Type</label>
+              <div class="meal-type-grid">
+                <div class="meal-type-option">
+                  <input type="radio" name="mealType" id="mtBreakfast" value="Breakfast" />
+                  <label class="meal-type-label" for="mtBreakfast"><span class="type-icon">🌅</span> Breakfast</label>
+                </div>
+                <div class="meal-type-option">
+                  <input type="radio" name="mealType" id="mtLunch" value="Lunch" />
+                  <label class="meal-type-label" for="mtLunch"><span class="type-icon">☀️</span> Lunch</label>
+                </div>
+                <div class="meal-type-option">
+                  <input type="radio" name="mealType" id="mtDinner" value="Dinner" />
+                  <label class="meal-type-label" for="mtDinner"><span class="type-icon">🌙</span> Dinner</label>
+                </div>
+                <div class="meal-type-option">
+                  <input type="radio" name="mealType" id="mtSnacks" value="Snacks" />
+                  <label class="meal-type-label" for="mtSnacks"><span class="type-icon">🍎</span> Snacks</label>
+                </div>
+              </div>
+              <div id="mealTypeError" style="display:none;color:var(--danger);font-size:.82rem;margin-top:.25rem;">
+                Please select a meal type.
+              </div>
+            </div>
+
+            <hr class="divider" />
+
+            <!-- STEP 3 · Details -->
+            <div class="mb-3">
+              <label for="foodName" class="form-label">Food Name</label>
+              <input type="text" id="foodName" class="form-control"
+                placeholder="Auto-filled when you select a food above" />
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <label for="quantity" class="form-label">Quantity / Serving</label>
+                <input type="text" id="quantity" class="form-control"
+                  placeholder="e.g. 1 bowl, 200g" />
+              </div>
+              <div class="col-6">
+                <label for="calories" class="form-label">
+                  Calories (kcal)
+                  <span style="font-weight:400;color:var(--green-main);font-size:.75rem;"> ✦ auto</span>
+                </label>
+                <input type="number" id="calories" class="form-control" placeholder="0" min="1" />
+              </div>
+            </div>
+
+            <hr class="divider" />
+            <p style="font-size:.8rem;color:var(--text-light);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:.8rem;">
+              Macros
+              <span style="font-weight:400;color:var(--green-main);font-size:.75rem;letter-spacing:0;text-transform:none;"> ✦ auto-filled from search</span>
+            </p>
+
+            <div class="row g-3 mb-4">
+              <div class="col-4">
+                <label for="protein" class="form-label">Protein (g)</label>
+                <input type="number" id="protein" class="form-control" placeholder="0" min="0" />
+              </div>
+              <div class="col-4">
+                <label for="carbs" class="form-label">Carbs (g)</label>
+                <input type="number" id="carbs" class="form-control" placeholder="0" min="0" />
+              </div>
+              <div class="col-4">
+                <label for="fat" class="form-label">Fat (g)</label>
+                <input type="number" id="fat" class="form-control" placeholder="0" min="0" />
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary-green flex-grow-1" style="padding:.8rem;">
+                💾 Save Meal Entry
+              </button>
+              <a href="dashboard.html" class="btn btn-outline-green" style="padding:.8rem 1.2rem;">Cancel</a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- ── TIPS PANEL ── -->
+      <div class="col-lg-4 d-none d-lg-block">
+
+        <div class="chart-wrapper mb-4">
+          <h5>⚡ How Auto-Fill Works</h5>
+          <div style="display:flex;flex-direction:column;gap:.9rem;margin-top:.6rem;">
+            <div style="display:flex;gap:.8rem;">
+              <div style="width:26px;height:26px;min-width:26px;background:var(--green-pale);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--green-dark);">1</div>
+              <p style="font-size:.85rem;color:var(--text-mid);margin:0;">Type a food name — local Indian foods appear instantly.</p>
+            </div>
+            <div style="display:flex;gap:.8rem;">
+              <div style="width:26px;height:26px;min-width:26px;background:var(--green-pale);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--green-dark);">2</div>
+              <p style="font-size:.85rem;color:var(--text-mid);margin:0;">Click a result — calories, protein, carbs &amp; fat fill automatically.</p>
+            </div>
+            <div style="display:flex;gap:.8rem;">
+              <div style="width:26px;height:26px;min-width:26px;background:var(--green-pale);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--green-dark);">3</div>
+              <p style="font-size:.85rem;color:var(--text-mid);margin:0;">Not found? Click <strong>Search Online</strong> to look up any food worldwide via Open Food Facts.</p>
+            </div>
+            <div style="display:flex;gap:.8rem;">
+              <div style="width:26px;height:26px;min-width:26px;background:var(--green-pale);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--green-dark);">4</div>
+              <p style="font-size:.85rem;color:var(--text-mid);margin:0;">Select meal type, verify quantity, and hit Save.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-wrapper mb-4">
+          <h5>🏷️ Data Sources</h5>
+          <div style="display:flex;flex-direction:column;gap:.7rem;margin-top:.5rem;">
+            <div style="display:flex;align-items:center;gap:.7rem;">
+              <span class="source-badge local">🇮🇳 Local</span>
+              <span style="font-size:.83rem;color:var(--text-mid);">100+ Indian foods — instant, works offline</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:.7rem;">
+              <span class="source-badge api">🌐 Online</span>
+              <span style="font-size:.83rem;color:var(--text-mid);">Open Food Facts — millions of foods worldwide</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-wrapper">
+          <h5>📋 Quick Reference</h5>
+          <table style="width:100%;font-size:.82rem;border-collapse:collapse;">
+            <thead>
+              <tr style="color:var(--text-light);text-align:left;">
+                <th style="padding:.35rem 0;border-bottom:1px solid var(--cream-dark);">Food</th>
+                <th style="padding:.35rem 0;border-bottom:1px solid var(--cream-dark);">Cal</th>
+                <th style="padding:.35rem 0;border-bottom:1px solid var(--cream-dark);">P</th>
+                <th style="padding:.35rem 0;border-bottom:1px solid var(--cream-dark);">C</th>
+                <th style="padding:.35rem 0;border-bottom:1px solid var(--cream-dark);">F</th>
+              </tr>
+            </thead>
+            <tbody style="color:var(--text-mid);">
+              <tr><td style="padding:.3rem 0;">Dal Rice</td>    <td style="font-family:var(--font-mono);">520</td><td>18g</td><td>80g</td><td>10g</td></tr>
+              <tr><td style="padding:.3rem 0;">Roti</td>        <td style="font-family:var(--font-mono);">70</td> <td>3g</td> <td>13g</td><td>1g</td></tr>
+              <tr><td style="padding:.3rem 0;">Idli (×2)</td>   <td style="font-family:var(--font-mono);">150</td><td>5g</td> <td>30g</td><td>1g</td></tr>
+              <tr><td style="padding:.3rem 0;">Banana</td>      <td style="font-family:var(--font-mono);">105</td><td>1g</td> <td>27g</td><td>0g</td></tr>
+              <tr><td style="padding:.3rem 0;">Boiled Egg</td>  <td style="font-family:var(--font-mono);">78</td> <td>6g</td> <td>1g</td> <td>5g</td></tr>
+              <tr><td style="padding:.3rem 0;">Chicken 100g</td><td style="font-family:var(--font-mono);">165</td><td>31g</td><td>0g</td><td>4g</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4"><h5>🥗 NutriTrack</h5><p style="font-size:.88rem;">Your personal nutrition companion. Track meals, monitor calories, and build healthier habits — one bite at a time.</p></div>
+      <div class="col-lg-4"><h5>Navigate</h5>
+        <ul class="list-unstyled" style="font-size:.88rem;">
+          <li><a href="dashboard.html">Dashboard</a></li>
+          <li><a href="reports.html">Reports</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom"><p style="margin:0;">© 2026 NutriTrack — Eat Smart. Live Better.</p></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Local food DB must load BEFORE script.js -->
+<script src="foodDatabase.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
