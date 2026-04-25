@@ -443,7 +443,7 @@
   const dateEl = document.getElementById('dashboardDate');
   if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
-  const FLASK = 'http://localhost:5001/api';
+  const FLASK = (typeof FLASK_API_BASE !== 'undefined') ? FLASK_API_BASE : 'http://localhost:5001/api';
   function escH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   async function generateDietPlan() {
@@ -697,7 +697,8 @@
 <script>
 async function loadMeals() {
   try {
-    const res = await fetch("http://localhost:5000/api/meals");
+    const base = (typeof API_BASE !== 'undefined') ? API_BASE : 'http://localhost:5000/api';
+    const res = await fetch(`${base}/meals`);
     const data = await res.json();
 
     console.log("Meals:", data); // check in console

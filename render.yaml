@@ -32,8 +32,10 @@ services:
     name: nutritrack-flask-api
     runtime: python
     rootDir: nutritrack_flask
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    buildCommand: |
+      apt-get update && apt-get install -y tesseract-ocr && rm -rf /var/lib/apt/lists/*
+      pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --timeout 120 --workers 2 app:app
     envVars:
       - key: MONGO_URI
         sync: false            # Set in Render UI (Atlas URI)
@@ -43,3 +45,5 @@ services:
         value: "False"
       - key: FLASK_ALLOWED_ORIGINS
         sync: false            # e.g. https://nutritrack.netlify.app
+      - key: PORT
+        value: "10000"         # Render default; overridden by platform

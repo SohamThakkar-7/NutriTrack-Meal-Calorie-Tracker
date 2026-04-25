@@ -6,6 +6,7 @@
 #  API Base: http://localhost:5001/api
 # ================================================================
 
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from config import Config
@@ -55,9 +56,10 @@ def server_error(e):
 
 # ── Start ──────────────────────────────────────────────────────
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5001))
     print("\n-----------------------------------------------")
     print("  NutriTrack Advanced API (Flask)")
-    print("  Listening on  http://localhost:5001")
+    print(f"  Listening on  http://localhost:{port}")
     print("  Press  Ctrl+C  to stop")
     print("-----------------------------------------------\n")
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=app.config.get("DEBUG", False))

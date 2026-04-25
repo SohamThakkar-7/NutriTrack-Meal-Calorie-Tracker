@@ -23,5 +23,8 @@ class Config:
     ALLOWED_ORIGINS = [
         o.strip() for o in
         os.getenv("FLASK_ALLOWED_ORIGINS",
-                  "http://127.0.0.1:5500,http://localhost:5500,http://localhost:3000,https://nutri-track-meal-calorie-tracker.vercel.app").split(",")
+                  "http://127.0.0.1:5500,http://localhost:5500,http://localhost:3000,"
+                  "https://nutri-track-meal-calorie-tracker.vercel.app,"
+                  "https://sohamthakkar-07-nutritrack-ai.hf.space").split(",")
     ]
+
