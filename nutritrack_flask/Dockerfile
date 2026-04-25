@@ -7,17 +7,20 @@ RUN apt-get update && apt-get install -y \
     libtesseract-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
-WORKDIR /app
+# Set up a new user with user ID 1000 (Required by Hugging Face)
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
 
-# Copy python dependencies file
-COPY requirements.txt .
+WORKDIR $HOME/app
 
-# Install python dependencies
+# Copy requirements and install
+COPY --chown=user requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the flask application
-COPY . .
+# Copy the rest of the application
+COPY --chown=user . .
 
 # Expose the port Hugging Face Spaces uses
 EXPOSE 7860
