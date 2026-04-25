@@ -9,13 +9,19 @@
      <script>window.__NUTRITRACK_API__ = 'https://nutritrack-api.onrender.com/api';</script>
    Locally, it falls back to the Express dev server.
 */
+const isProduction = window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost';
+
 const API_BASE = (typeof window !== 'undefined' && window.__NUTRITRACK_API__)
   ? window.__NUTRITRACK_API__
-  : 'http://127.0.0.1:5000/api';
+  : isProduction
+    ? `${window.location.origin}/api`
+    : 'http://127.0.0.1:5000/api';
 
 const FLASK_API_BASE = (typeof window !== 'undefined' && window.__NUTRITRACK_FLASK_API__)
   ? window.__NUTRITRACK_FLASK_API__
-  : 'http://127.0.0.1:5001/api';
+  : isProduction
+    ? 'https://sohamthakkar-07-nutritrack-ai.hf.space/api'
+    : 'http://127.0.0.1:5001/api';
 
 /* ── API layer — all meal data goes to MongoDB via Express ── */
 const API = {
