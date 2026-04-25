@@ -21,8 +21,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        generateValue: false   # Render injects PORT automatically
+
       - key: MONGO_URI
         sync: false            # You must set this in the Render UI
       - key: ALLOWED_ORIGINS
