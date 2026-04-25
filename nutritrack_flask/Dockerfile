@@ -19,8 +19,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the flask application
 COPY . .
 
-# Expose the port Koyeb/Render will use
-EXPOSE 8000
+# Expose the port Hugging Face Spaces uses
+EXPOSE 7860
 
 # Start the Flask app with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "app:app"]
