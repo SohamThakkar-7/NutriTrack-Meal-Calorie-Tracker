@@ -147,12 +147,17 @@ app.use((err, _req, res, _next) => {
 });
 
 // ── Start server ──────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log('');
-  console.log('┌─────────────────────────────────────────┐');
-  console.log('│   🥗  NutriTrack API Server              │');
-  console.log(`│   Listening on http://localhost:${PORT}    │`);
-  console.log('│   Press Ctrl+C to stop                  │');
-  console.log('└─────────────────────────────────────────┘');
-  console.log('');
-});
+if (process.env.NODE_ENV !== 'production' || process.env.RENDER || process.env.KOYEB) {
+  app.listen(PORT, () => {
+    console.log('');
+    console.log('┌─────────────────────────────────────────┐');
+    console.log('│   🥗  NutriTrack API Server              │');
+    console.log(`│   Listening on http://localhost:${PORT}    │`);
+    console.log('│   Press Ctrl+C to stop                  │');
+    console.log('└─────────────────────────────────────────┘');
+    console.log('');
+  });
+}
+
+// Export for Serverless environments (like Vercel)
+module.exports = app;
