@@ -1,0 +1,43 @@
+# ─────────────────────────────────────────────────────────────
+# NutriTrack – .gitignore
+# ─────────────────────────────────────────────────────────────
+
+# ── Environment files – NEVER commit these ────────────────────
+.env
+nutritrack_flask/.env
+
+# ── Node.js ──────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+nutritrack_flask/__pycache__/
+nutritrack_flask/routes/__pycache__/
+nutritrack_flask/helpers/__pycache__/
+*.egg-info/
+dist/
+build/
+.Python
+venv/
+env/
+.venv/
+
+# ── VS Code ───────────────────────────────────────────────────
+.vscode/settings.json
+.vscode/launch.json
+
+# ── OS files ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/

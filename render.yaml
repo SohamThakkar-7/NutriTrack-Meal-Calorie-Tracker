@@ -1,0 +1,49 @@
+# render.yaml
+# ─────────────────────────────────────────────────────────────
+# Render.com Blueprint – deploys both the Express and Flask
+# backends as separate web services from one repository.
+#
+# How to use:
+#   1. Push this repo to GitHub
+#   2. Go to https://dashboard.render.com → New → Blueprint
+#   3. Connect your GitHub repo and Render will read this file
+#   4. Fill in the environment variable values in the Render UI
+# ─────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Express / Node.js backend (primary API) ────────────────
+  - type: web
+    name: nutritrack-api
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: MONGO_URI
+        sync: false            # You must set this in the Render UI
+      - key: ALLOWED_ORIGINS
+        sync: false            # e.g. https://nutritrack.netlify.app
+
+  # ── Flask / Python backend (advanced features) ─────────────
+  - type: web
+    name: nutritrack-flask-api
+    runtime: python
+    rootDir: nutritrack_flask
+    buildCommand: |
+      apt-get update && apt-get install -y tesseract-ocr && rm -rf /var/lib/apt/lists/*
+      pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --timeout 120 --workers 2 app:app
+    envVars:
+      - key: MONGO_URI
+        sync: false            # Set in Render UI (Atlas URI)
+      - key: SECRET_KEY
+        generateValue: true    # Render generates a secure value
+      - key: FLASK_DEBUG
+        value: "False"
+      - key: FLASK_ALLOWED_ORIGINS
+        sync: false            # e.g. https://nutritrack.netlify.app
+      - key: PORT
+        value: "10000"         # Render default; overridden by platform

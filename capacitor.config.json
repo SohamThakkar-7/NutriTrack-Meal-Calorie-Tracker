@@ -1,0 +1,11 @@
+{
+  "appId": "com.soham.nutritrack",
+  "appName": "NutriTrack",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": [
+      "nutritrack-meal-calorie-tracker.onrender.com"
+    ]
+  }
+}

@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — NutriTrack</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Diet Plan Modal styles ── */
+    .modal-content {
+      border-radius: var(--radius-lg);
+      border: none;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-header {
+      background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+      color: #fff;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      border: none;
+      padding: 1.5rem;
+    }
+    .modal-header .btn-close { filter: invert(1); }
+    .modal-title { font-family: var(--font-display); font-size: 1.4rem; }
+
+    .disease-checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: .6rem;
+    }
+    .disease-option input { display: none; }
+    .disease-option label {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .6rem .9rem;
+      border: 1.5px solid rgba(201,185,154,.4);
+      border-radius: var(--radius-sm);
+      background: var(--cream);
+      cursor: pointer;
+      font-size: .85rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      transition: all var(--transition);
+    }
+    .disease-option input:checked + label {
+      border-color: var(--green-main);
+      background: var(--green-pale);
+      color: var(--green-dark);
+    }
+
+    .plan-section {
+      background: var(--cream);
+      border-radius: var(--radius-md);
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .plan-section h6 {
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: .8rem;
+    }
+    .food-chip-eat {
+      display: inline-block;
+      background: var(--green-pale);
+      color: var(--green-dark);
+      border-radius: 50px;
+      padding: .25rem .7rem;
+      font-size: .78rem;
+      font-weight: 500;
+      margin: .2rem;
+      border: 1px solid rgba(64,145,108,.2);
+    }
+    .food-chip-avoid {
+      display: inline-block;
+      background: rgba(201,64,64,.08);
+      color: var(--danger);
+      border-radius: 50px;
+      padding: .25rem .7rem;
+      font-size: .78rem;
+      font-weight: 500;
+      margin: .2rem;
+      border: 1px solid rgba(201,64,64,.2);
+    }
+    .meal-plan-row {
+      display: flex;
+      gap: .8rem;
+      padding: .6rem 0;
+      border-bottom: 1px solid rgba(201,185,154,.25);
+      font-size: .85rem;
+    }
+    .meal-plan-row:last-child { border-bottom: none; }
+    .meal-time {
+      font-weight: 700;
+      color: var(--green-dark);
+      min-width: 110px;
+      font-size: .8rem;
+    }
+    .meal-desc { color: var(--text-mid); }
+    .tip-item {
+      display: flex;
+      gap: .6rem;
+      font-size: .84rem;
+      color: var(--text-mid);
+      margin-bottom: .5rem;
+    }
+    .age-note-banner {
+      border-radius: var(--radius-sm);
+      padding: .75rem 1rem;
+      font-size: .85rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    .disease-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      background: rgba(61,139,224,.1);
+      color: var(--info);
+      border-radius: 50px;
+      padding: .2rem .7rem;
+      font-size: .75rem;
+      font-weight: 600;
+      margin: .2rem;
+    }
+    .plan-loading { text-align: center; padding: 2rem; color: var(--text-light); }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--cream-dark);
+      border-top-color: var(--green-main);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="index.html"><span class="brand-icon">🥗</span> NutriTrack</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav ms-auto gap-1">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="login.html">Login</a></li>
+        <li class="nav-item"><a class="nav-link" href="register.html">Register</a></li>
+        <li class="nav-item"><a class="nav-link active" href="dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="add_meal.html">Add Meal</a></li>
+        <li class="nav-item"><a class="nav-link" href="reports.html">Reports</a></li>
+        <li class="nav-item"><a class="nav-link" href="analyze_report.html">Health Report</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div id="dashboardPage" style="padding:2.5rem 0 4rem;">
+  <div class="container">
+
+    <div class="dashboard-welcome fade-in">
+      <h2>Good day, <span id="welcomeName">there</span> 👋</h2>
+      <p id="dashboardDate" style="margin:0;"></p>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3 fade-in">
+        <div class="stat-card green">
+          <div class="stat-value" id="totalCalories">0</div>
+          <div class="stat-label">Calories Today</div>
+          <div class="stat-icon">🔥</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3 fade-in fade-in-delay-1">
+        <div class="stat-card blue">
+          <div class="stat-value" id="totalProtein">0g</div>
+          <div class="stat-label">Protein</div>
+          <div class="stat-icon">🥩</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3 fade-in fade-in-delay-2">
+        <div class="stat-card orange">
+          <div class="stat-value" id="totalCarbs">0g</div>
+          <div class="stat-label">Carbohydrates</div>
+          <div class="stat-icon">🌾</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3 fade-in fade-in-delay-3">
+        <div class="stat-card red">
+          <div class="stat-value" id="totalFat">0g</div>
+          <div class="stat-label">Fat</div>
+          <div class="stat-icon">🥑</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="chart-wrapper mb-4 fade-in">
+          <h5>Calorie Goal Progress</h5>
+          <p id="calorieProgressLabel" style="font-size:.85rem;color:var(--text-light);margin-bottom:.8rem;">0 / 2000 kcal</p>
+          <div class="progress mb-3">
+            <div id="calorieProgress" class="progress-bar" role="progressbar" style="width:0%;background:var(--green-main);" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <div class="row g-2">
+            <div class="col-4">
+              <div class="progress-label">Protein <small id="proteinPct"></small></div>
+              <div class="progress" style="height:8px;">
+                <div id="proteinBar" class="progress-bar" style="width:0%;background:var(--info);"></div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="progress-label">Carbs</div>
+              <div class="progress" style="height:8px;">
+                <div id="carbsBar" class="progress-bar" style="width:0%;background:var(--warning);"></div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="progress-label">Fat</div>
+              <div class="progress" style="height:8px;">
+                <div id="fatBar" class="progress-bar" style="width:0%;background:var(--danger);"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrapper fade-in">
+          <h5>Weekly Calorie Overview</h5>
+          <canvas id="weeklyChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="chart-wrapper mb-4 fade-in">
+          <h5>Quick Actions</h5>
+          <div class="d-grid gap-2">
+            <a href="add_meal.html" class="btn btn-primary-green">➕ Log a Meal</a>
+            <a href="reports.html" class="btn btn-outline-green">📊 View Full Report</a>
+            <button class="btn btn-primary-green" data-bs-toggle="modal" data-bs-target="#dietPlanModal"
+              style="background:linear-gradient(135deg,#2d6a4f,#1a3a2a);">
+              🥗 Get My Diet Plan
+            </button>
+          </div>
+        </div>
+        <div class="chart-wrapper fade-in">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;">
+            <h5 style="margin:0;">Today's Meals</h5>
+            <a href="reports.html" style="font-size:.82rem;">See all →</a>
+          </div>
+          <div id="recentMealsList"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ DIET PLAN MODAL ══ -->
+<div class="modal fade" id="dietPlanModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">🥗 Personalised Diet Plan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body" style="padding:1.5rem;">
+
+        <!-- FORM -->
+        <div id="dietFormSection">
+          <p style="color:var(--text-light);font-size:.88rem;margin-bottom:1.5rem;">
+            Enter your age and select your health conditions. We'll create a personalised diet plan with foods to eat, foods to avoid, and a complete day meal plan.
+          </p>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Your Age</label>
+              <input type="number" id="dietAge" class="form-control" placeholder="e.g. 26" min="1" max="120" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Gender (Optional)</label>
+              <select id="dietGender" class="form-select">
+                <option value="">Select...</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Activity Level</label>
+              <select id="dietActivity" class="form-select">
+                <option value="sedentary">Sedentary</option>
+                <option value="moderate" selected>Moderate</option>
+                <option value="active">Active</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label">Weight (kg)</label>
+              <input type="number" id="dietWeight" class="form-control" placeholder="e.g. 70" min="1" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Height (cm)</label>
+              <input type="number" id="dietHeight" class="form-control" placeholder="e.g. 175" min="1" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Primary Goal</label>
+              <select id="dietGoal" class="form-select">
+                <option value="maintenance">Maintenance</option>
+                <option value="fat_loss">Fat Loss</option>
+                <option value="muscle_gain">Muscle Gain</option>
+                <option value="general_health">General Health</option>
+                <option value="recovery">Recovery from Deficiency</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-block mb-2">
+              Health Conditions
+              <span style="font-weight:400;color:var(--text-light);font-size:.78rem;"> (select all that apply)</span>
+            </label>
+            <div class="disease-checkbox-grid">
+              <div class="disease-option"><input type="checkbox" id="d_lowbp"      value="Low BP" /><label for="d_lowbp">🩺 Low BP</label></div>
+              <div class="disease-option"><input type="checkbox" id="d_highbp"     value="High BP" /><label for="d_highbp">🩺 High BP</label></div>
+              <div class="disease-option"><input type="checkbox" id="d_diabetes"   value="Diabetes" /><label for="d_diabetes">🍬 Diabetes</label></div>
+              <div class="disease-option"><input type="checkbox" id="d_anaemia"    value="Anaemia" /><label for="d_anaemia">🩸 Anaemia</label></div>
+              <div class="disease-option"><input type="checkbox" id="d_obesity"    value="Obesity" /><label for="d_obesity">⚖️ Obesity</label></div>
+              <div class="disease-option"><input type="checkbox" id="d_thyroid"    value="Thyroid" /><label for="d_thyroid">🦋 Thyroid</label></div>
+              <div class="disease-option"><input type="checkbox" id="d_cholesterol" value="Cholesterol" /><label for="d_cholesterol">💉 Cholesterol</label></div>
+              <div class="disease-option"><input type="checkbox" id="d_pcod"       value="PCOD" /><label for="d_pcod">🌸 PCOD/PCOS</label></div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-block mb-2">
+              Deficiencies
+              <span style="font-weight:400;color:var(--text-light);font-size:.78rem;"> (optional)</span>
+            </label>
+            <div class="disease-checkbox-grid">
+              <div class="disease-option"><input type="checkbox" id="def_cal"  value="Low Calories" /><label for="def_cal">🔥 Low Calories</label></div>
+              <div class="disease-option"><input type="checkbox" id="def_pro"  value="Low Protein" /><label for="def_pro">🥩 Low Protein</label></div>
+              <div class="disease-option"><input type="checkbox" id="def_iron" value="Iron Deficiency" /><label for="def_iron">🩸 Iron Deficiency</label></div>
+            </div>
+          </div>
+
+          <div id="dietFormError" style="display:none;color:var(--danger);font-size:.85rem;margin-bottom:1rem;"></div>
+
+          <button class="btn btn-primary-green w-100" style="padding:.85rem;" onclick="generateDietPlan()">
+            🚀 Generate My Diet Plan
+          </button>
+        </div>
+
+        <!-- RESULT -->
+        <div id="dietResultSection" style="display:none;">
+          <button class="btn btn-outline-green mb-3" style="font-size:.85rem;padding:.4rem 1rem;" onclick="showDietForm()">
+            ← Change Details
+          </button>
+
+          <div id="dietLoading" class="plan-loading">
+            <div class="spinner"></div>
+            Generating your personalised diet plan…
+          </div>
+
+          <div id="dietPlanContent" style="display:none;">
+            <div id="analysisSection"></div>
+            <div id="ageNoteBanner" class="age-note-banner"></div>
+            <div id="diseasesAddressed" style="margin-bottom:1rem;"></div>
+
+            <div class="plan-section">
+              <h6>✅ Foods to Eat</h6>
+              <div id="foodsToEat"></div>
+            </div>
+            <div class="plan-section">
+              <h6>❌ Foods to Avoid</h6>
+              <div id="foodsToAvoid"></div>
+            </div>
+            <div class="plan-section">
+              <h6>🍽️ Full Day Meal Plan</h6>
+              <div id="mealPlanList"></div>
+            </div>
+            <div class="plan-section">
+              <h6>💡 Health Tips</h6>
+              <div id="healthTips"></div>
+            </div>
+            <div id="deficiencyExtras" style="display:none;">
+              <div class="plan-section">
+                <h6>⚠️ Extra Foods for Your Deficiencies</h6>
+                <div id="deficiencyExtrasList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="border-top:1px solid var(--cream-dark);padding:1rem 1.5rem;">
+        <p style="font-size:.75rem;color:var(--text-light);margin:0;">
+          ⚕️ This plan is for general guidance only. Always consult a doctor or dietitian for medical advice.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <h5>🥗 NutriTrack</h5>
+        <p style="font-size:.88rem;line-height:1.7;">Your personal nutrition companion. Track meals, monitor calories, and build healthier habits.</p>
+      </div>
+      <div class="col-lg-4">
+        <h5>Navigate</h5>
+        <ul class="list-unstyled" style="font-size:.88rem;">
+          <li><a href="add_meal.html">Add Meal</a></li>
+          <li><a href="reports.html">Reports</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-4">
+        <h5>Daily Goal</h5>
+        <p style="font-size:.85rem;">Default calorie goal: <strong style="color:var(--green-light);">2,000 kcal</strong><br>Adjust by eating according to your needs.</p>
+      </div>
+    </div>
+    <div class="footer-bottom"><p style="margin:0;">© 2026 NutriTrack — Eat Smart. Live Better.</p></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="script.js"></script>
+<script>
+  const dateEl = document.getElementById('dashboardDate');
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  const FLASK = (typeof FLASK_API_BASE !== 'undefined') ? FLASK_API_BASE : 'http://localhost:5001/api';
+  function escH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  async function generateDietPlan() {
+    const age   = parseInt(document.getElementById('dietAge').value);
+    const weight = parseFloat(document.getElementById('dietWeight').value) || 0;
+    const height = parseFloat(document.getElementById('dietHeight').value) || 0;
+    const gender = document.getElementById('dietGender').value;
+    const activity = document.getElementById('dietActivity').value;
+    const goal = document.getElementById('dietGoal').value;
+    
+    const errEl = document.getElementById('dietFormError');
+    errEl.style.display = 'none';
+
+    if (!age || age < 1 || age > 120) {
+      errEl.textContent = 'Please enter a valid age.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const DISEASE_VALS    = ['Low BP','High BP','Diabetes','Anaemia','Obesity','Thyroid','Cholesterol','PCOD'];
+    const DEFICIENCY_VALS = ['Low Calories','Low Protein','Iron Deficiency'];
+
+    const diseases     = [...document.querySelectorAll('#dietFormSection input[type="checkbox"]:checked')].map(c=>c.value).filter(v=>DISEASE_VALS.includes(v));
+    const deficiencies = [...document.querySelectorAll('#dietFormSection input[type="checkbox"]:checked')].map(c=>c.value).filter(v=>DEFICIENCY_VALS.includes(v));
+
+    document.getElementById('dietFormSection').style.display   = 'none';
+    document.getElementById('dietResultSection').style.display = 'block';
+    document.getElementById('dietLoading').style.display       = 'block';
+    document.getElementById('dietPlanContent').style.display   = 'none';
+    
+    const analysis = calculateProteinAndAnalysis(age, gender, weight, height, activity, goal, diseases, deficiencies);
+    renderAnalysis(analysis);
+
+    try {
+      const res  = await fetch(`${FLASK}/dietplan`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({age, diseases, deficiencies}) });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'Failed');
+      renderDietPlan(data.plan);
+    } catch(err) {
+      document.getElementById('dietLoading').style.display = 'none';
+      document.getElementById('dietPlanContent').style.display = 'block';
+      const fte = document.getElementById('foodsToEat');
+      if(fte) fte.innerHTML = `<p style="color:var(--danger);">⚠️ Could not reach Flask server for the detailed meal plan. Make sure <code>python app.py</code> is running.</p>`;
+    }
+  }
+
+  function calculateProteinAndAnalysis(age, gender, weight, height, activity, goal, diseases, deficiencies) {
+    let w = weight || 70;
+    let h = height || 170;
+    
+    // BMR Calculation (Mifflin-St Jeor Equation)
+    let bmr = 10 * w + 6.25 * h - 5 * age;
+    if (gender === 'male') {
+      bmr += 5;
+    } else if (gender === 'female') {
+      bmr -= 161;
+    } else {
+      bmr -= 78; // average
+    }
+    
+    // Activity Multiplier for TDEE
+    let tdeeMultiplier = 1.2;
+    if (activity === 'moderate') tdeeMultiplier = 1.55;
+    if (activity === 'active') tdeeMultiplier = 1.725;
+    let tdee = bmr * tdeeMultiplier;
+    
+    // Adjust TDEE based on Goal
+    let targetCalories = tdee;
+    if (goal === 'fat_loss') targetCalories -= 500;
+    if (goal === 'muscle_gain') targetCalories += 300;
+    
+    targetCalories = Math.round(targetCalories);
+
+    // Protein Logic
+    let minProteinMultiplier = 0.8;
+    let maxProteinMultiplier = 1.0;
+    
+    if (activity === 'sedentary') { minProteinMultiplier = 0.8; maxProteinMultiplier = 1.0; }
+    else if (activity === 'moderate') { minProteinMultiplier = 1.2; maxProteinMultiplier = 1.5; }
+    else if (activity === 'active') { minProteinMultiplier = 1.6; maxProteinMultiplier = 2.0; }
+    
+    if (goal === 'muscle_gain') {
+      minProteinMultiplier = Math.max(minProteinMultiplier, 1.6);
+      maxProteinMultiplier = Math.max(maxProteinMultiplier, 2.2);
+    } else if (goal === 'fat_loss') {
+      minProteinMultiplier = Math.max(minProteinMultiplier, 1.5);
+      maxProteinMultiplier = Math.max(maxProteinMultiplier, 2.0);
+    } else if (goal === 'recovery' || deficiencies.length > 0) {
+      minProteinMultiplier = Math.max(minProteinMultiplier, 1.2);
+      maxProteinMultiplier = Math.max(maxProteinMultiplier, 1.5);
+    }
+    
+    const minProtein = Math.round(w * minProteinMultiplier);
+    const maxProtein = Math.round(w * maxProteinMultiplier);
+    
+    // Fats & Carbs Logic
+    const avgProtein = (minProtein + maxProtein) / 2;
+    const targetFats = Math.round((targetCalories * 0.25) / 9); // 25% of calories from fat
+    const targetCarbs = Math.round((targetCalories - (avgProtein * 4) - (targetFats * 9)) / 4);
+
+    let explanation = `Based on your profile, your estimated total daily energy expenditure (TDEE) is around ${Math.round(tdee)} kcal. To achieve your goal of ${goal.replace('_', ' ')}, a daily intake of <strong>${targetCalories} kcal</strong> is recommended.`;
+    if (goal === 'muscle_gain') explanation += ' This slight surplus supports muscle growth.';
+    else if (goal === 'fat_loss') explanation += ' This caloric deficit encourages fat loss while preserving muscle.';
+
+    let conditionPrecautions = [];
+    if (diseases.includes('Low BP')) conditionPrecautions.push('<strong>Low Blood Pressure:</strong> Ensure adequate hydration and slightly higher sodium intake if approved by your doctor. Avoid sudden postural changes.');
+    if (diseases.includes('High BP')) conditionPrecautions.push('<strong>High Blood Pressure:</strong> Focus on a DASH diet approach. Restrict sodium, increase potassium-rich foods (bananas, spinach), and avoid processed meats.');
+    if (diseases.includes('Diabetes')) conditionPrecautions.push('<strong>Diabetes:</strong> Prioritize complex carbohydrates with low glycemic index. Pair carbs with protein and fiber to prevent blood sugar spikes.');
+    if (diseases.includes('Thyroid')) conditionPrecautions.push('<strong>Thyroid Issues:</strong> Ensure adequate iodine, selenium, and zinc. Avoid excessive raw goitrogens (like raw cabbage/spinach) if you have hypothyroidism.');
+    if (diseases.includes('Anaemia') || deficiencies.includes('Iron Deficiency')) conditionPrecautions.push('<strong>Anaemia / Iron Deficiency:</strong> Increase intake of iron-rich foods (lean red meat, lentils, spinach). Pair with Vitamin C sources to enhance absorption.');
+    if (diseases.includes('Cholesterol')) conditionPrecautions.push('<strong>High Cholesterol:</strong> Increase soluble fiber (oats, beans). Replace saturated fats with healthy fats (olive oil, avocados, nuts).');
+    if (diseases.includes('Obesity')) conditionPrecautions.push('<strong>Obesity:</strong> Focus on nutrient-dense, low-calorie foods. High fiber and protein will help maintain fullness.');
+    if (diseases.includes('PCOD')) conditionPrecautions.push('<strong>PCOD/PCOS:</strong> Focus on low glycemic index foods to manage insulin resistance. Increase anti-inflammatory foods (omega-3s, berries, greens).');
+    
+    if (deficiencies.includes('Low Calories')) conditionPrecautions.push('<strong>Low Calories:</strong> Incorporate calorie-dense, nutritious foods like nuts, seeds, avocados, and healthy oils.');
+    if (deficiencies.includes('Low Protein')) conditionPrecautions.push('<strong>Low Protein:</strong> Gradually increase protein intake using lean meats, eggs, dairy, or plant-based options like tofu and lentils.');
+
+    let guidelines = [
+      'Distribute protein evenly across 3-4 meals to maximize absorption.',
+      'Stay hydrated! Aim for at least 2-3 liters of water daily.',
+      'Include a variety of colorful vegetables to ensure adequate micronutrient intake.'
+    ];
+    if (goal === 'muscle_gain') guidelines.push('Consume a protein-rich meal or snack within 1-2 hours after your workout.');
+    if (goal === 'fat_loss') guidelines.push('Prioritize whole, minimally processed foods to improve satiety.');
+
+    return {
+      calories: targetCalories,
+      proteinRange: `${minProtein}g - ${maxProtein}g`,
+      carbs: `${targetCarbs}g`,
+      fats: `${targetFats}g`,
+      explanation,
+      precautions: conditionPrecautions,
+      guidelines
+    };
+  }
+
+  function renderAnalysis(analysis) {
+    const container = document.getElementById('analysisSection');
+    if (!container) return;
+    
+    let html = `
+      <div class="plan-section" style="background:rgba(61,139,224,.05); border:1px solid rgba(61,139,224,.2);">
+        <h6 style="color:var(--info);">📊 Health & Macro Analysis</h6>
+        
+        <div style="display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:1rem; margin-top:1rem;">
+          <div style="background:#fff; border-radius:8px; padding:.6rem 1rem; flex:1; min-width:100px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+            <div style="font-size:.75rem; color:var(--text-light); text-transform:uppercase; font-weight:700;">Calories</div>
+            <div style="color:var(--green-main); font-weight:700; font-size:1.2rem;">${analysis.calories}</div>
+          </div>
+          <div style="background:#fff; border-radius:8px; padding:.6rem 1rem; flex:1; min-width:100px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+            <div style="font-size:.75rem; color:var(--text-light); text-transform:uppercase; font-weight:700;">Protein</div>
+            <div style="color:var(--info); font-weight:700; font-size:1.2rem;">${analysis.proteinRange}</div>
+          </div>
+          <div style="background:#fff; border-radius:8px; padding:.6rem 1rem; flex:1; min-width:100px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+            <div style="font-size:.75rem; color:var(--text-light); text-transform:uppercase; font-weight:700;">Carbs</div>
+            <div style="color:var(--warning); font-weight:700; font-size:1.2rem;">${analysis.carbs}</div>
+          </div>
+          <div style="background:#fff; border-radius:8px; padding:.6rem 1rem; flex:1; min-width:100px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+            <div style="font-size:.75rem; color:var(--text-light); text-transform:uppercase; font-weight:700;">Fat</div>
+            <div style="color:var(--danger); font-weight:700; font-size:1.2rem;">${analysis.fats}</div>
+          </div>
+        </div>
+
+        <p style="font-size:.88rem; color:var(--text-mid); margin-bottom:1rem; line-height:1.5;">
+          ${analysis.explanation}
+        </p>
+    `;
+    
+    if (analysis.precautions.length > 0) {
+      html += `<h6 style="margin-top:1rem; color:var(--danger); font-size:.78rem;">⚠️ Medical & Dietary Precautions</h6>
+               <ul style="font-size:.85rem; color:var(--text-mid); padding-left:1.2rem; margin-bottom:1rem;">`;
+      analysis.precautions.forEach(p => html += `<li style="margin-bottom:.4rem;">${p}</li>`);
+      html += `</ul>`;
+    }
+
+    html += `<h6 style="margin-top:1rem; color:var(--green-dark); font-size:.78rem;">💡 Dietary Guidelines</h6>
+             <ul style="font-size:.85rem; color:var(--text-mid); padding-left:1.2rem; margin-bottom:0;">`;
+    analysis.guidelines.forEach(g => html += `<li style="margin-bottom:.4rem;">${g}</li>`);
+    html += `</ul></div>`;
+    
+    container.innerHTML = html;
+  }
+
+  function renderDietPlan(plan) {
+    document.getElementById('dietLoading').style.display     = 'none';
+    document.getElementById('dietPlanContent').style.display = 'block';
+
+    if (plan.message) {
+      const analysisHtml = document.getElementById('analysisSection').innerHTML;
+      document.getElementById('dietPlanContent').innerHTML = `
+        <div id="analysisSection">${analysisHtml}</div>
+        <div style="background:var(--green-pale);border-radius:var(--radius-md);padding:1.5rem;text-align:center;margin-top:1rem;">
+          <div style="font-size:2rem;margin-bottom:.5rem;">✅</div>
+          <p style="font-weight:600;color:var(--green-dark);">${escH(plan.message)}</p>
+          <ul style="list-style:none;padding:0;margin:0;text-align:left;display:inline-block;">
+            ${(plan.general_tips||[]).map(t=>`<li style="font-size:.86rem;color:var(--text-mid);padding:.3rem 0;">💡 ${escH(t)}</li>`).join('')}
+          </ul>
+        </div>`;
+      return;
+    }
+
+    // Age note
+    const ageNote = document.getElementById('ageNoteBanner');
+    const isGood  = plan.age_note.startsWith('✅');
+    ageNote.textContent   = plan.age_note;
+    ageNote.style.cssText = `background:${isGood?'var(--green-pale)':'rgba(224,155,61,.12)'};color:${isGood?'var(--green-dark)':'var(--warning)'};border:1px solid ${isGood?'var(--green-light)':'rgba(224,155,61,.3)'};border-radius:var(--radius-sm);padding:.75rem 1rem;font-size:.85rem;font-weight:500;margin-bottom:1rem;`;
+
+    // Diseases
+    const disEl = document.getElementById('diseasesAddressed');
+    disEl.innerHTML = (plan.diseases_addressed||[]).length > 0 ? `
+      <p style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-light);margin-bottom:.4rem;">Plan addresses:</p>
+      ${(plan.diseases_addressed||[]).map(d=>`<span class="disease-badge">🩺 ${escH(d.name)}</span>`).join('')}
+      ${(plan.deficiencies_addressed||[]).map(d=>`<span class="disease-badge" style="background:rgba(201,64,64,.1);color:var(--danger);">⚠️ ${escH(d)}</span>`).join('')}
+    ` : '';
+
+    // Foods
+    document.getElementById('foodsToEat').innerHTML   = (plan.combined_foods_to_eat||[]).map(f=>`<span class="food-chip-eat">✅ ${escH(f)}</span>`).join('');
+    document.getElementById('foodsToAvoid').innerHTML = (plan.combined_foods_to_avoid||[]).map(f=>`<span class="food-chip-avoid">❌ ${escH(f)}</span>`).join('');
+
+    // Meal plan
+    document.getElementById('mealPlanList').innerHTML = Object.entries(plan.meal_plan||{}).map(([time,desc])=>`
+      <div class="meal-plan-row"><div class="meal-time">🕐 ${escH(time)}</div><div class="meal-desc">${escH(desc)}</div></div>`).join('');
+
+    // Tips
+    document.getElementById('healthTips').innerHTML = (plan.tips||[]).map(t=>`<div class="tip-item"><span>💡</span><span>${escH(t)}</span></div>`).join('');
+
+    // Deficiency extras
+    const extras = plan.deficiency_additions || {};
+    if (Object.keys(extras).length > 0) {
+      document.getElementById('deficiencyExtras').style.display = 'block';
+      document.getElementById('deficiencyExtrasList').innerHTML = Object.entries(extras).map(([def,info])=>`
+        <div style="margin-bottom:.8rem;">
+          <p style="font-size:.82rem;font-weight:700;color:var(--danger);margin-bottom:.4rem;">⚠️ ${escH(def)}</p>
+          <div>${(info.extra_foods||[]).map(f=>`<span class="food-chip-eat">✅ ${escH(f)}</span>`).join('')}</div>
+        </div>`).join('');
+    } else {
+      document.getElementById('deficiencyExtras').style.display = 'none';
+    }
+  }
+
+  function showDietForm() {
+    document.getElementById('dietFormSection').style.display   = 'block';
+    document.getElementById('dietResultSection').style.display = 'none';
+  }
+
+  document.getElementById('dietPlanModal').addEventListener('hidden.bs.modal', () => {
+    showDietForm();
+    document.getElementById('dietFormError').style.display = 'none';
+  });
+</script>
+<script>
+async function loadMeals() {
+  try {
+    const base = (typeof API_BASE !== 'undefined') ? API_BASE : 'http://localhost:5000/api';
+    const res = await fetch(`${base}/meals`);
+    const data = await res.json();
+
+    console.log("Meals:", data); // check in console
+
+  } catch (err) {
+    console.error("Error:", err);
+  }
+}
+
+// Call function when page loads
+loadMeals();
+</script>
+</body>
+</html>
