@@ -23,9 +23,6 @@ const API_BASE = (typeof window !== 'undefined' && window.__NUTRITRACK_API__)
     ? 'https://nutritrack-meal-calorie-tracker.onrender.com/api'
     : 'http://127.0.0.1:5000/api';
 
-// ADD THIS 👇
-alert('API_BASE: ' + API_BASE + ' | isApp: ' + isApp + ' | protocol: ' + window.location.protocol);
-
 const FLASK_API_BASE = (typeof window !== 'undefined' && window.__NUTRITRACK_FLASK_API__)
   ? window.__NUTRITRACK_FLASK_API__
   : isProduction
