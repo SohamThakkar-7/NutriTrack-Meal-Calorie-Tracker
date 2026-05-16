@@ -34,10 +34,21 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       'http://localhost:3000',
       'http://127.0.0.1:3000',
       'http://localhost:5173',
+      // ── Capacitor / Android app origins ──
+      'https://localhost',          // Capacitor androidScheme: https
+      'http://localhost',           // Capacitor androidScheme: http
+      'capacitor://localhost',      // Capacitor iOS / older Android
+      'ionic://localhost',          // Ionic apps
     ];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman, file://)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.warn(`CORS blocked origin: ${origin}`);
+    return callback(new Error(`CORS policy: origin ${origin} not allowed`));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
 }));
